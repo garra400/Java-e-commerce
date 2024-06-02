@@ -198,6 +198,7 @@ public class Application {
                             System.out.println("1. Cartão de Crédito");
                             System.out.println("2. Cartão de Débito");
                             System.out.println("3. Pix");
+                            System.out.println("4. Carteira de criptomoedas");
                             formaPagamento = scanner.nextInt();
                             switch(formaPagamento){
                                 case 1:
@@ -225,6 +226,16 @@ public class Application {
                                     numeroChave = scanner.nextLine();//Duplicado devido a algum bug que faz pular essa linha
                                     numeroChave = scanner.nextLine();
                                     pagamento = new Pix(carrinhoAtual.getTotal(), numeroChave);
+                                    System.out.println("Pedido realizado com sucesso!");
+                                    System.out.println(pedido);
+                                    System.out.println(pagamento);
+                                    carrinhoAtual = new Carrinho();
+                                    break;
+                                case 4:
+                                    System.out.println("Digite o endereço da sua carteira: ");
+                                    numeroChave = scanner.nextLine();//Duplicado devido a algum bug que faz pular essa linha
+                                    numeroChave = scanner.nextLine();
+                                    pagamento = new Wallet(carrinhoAtual.getTotal(), numeroChave);
                                     System.out.println("Pedido realizado com sucesso!");
                                     System.out.println(pedido);
                                     System.out.println(pagamento);
