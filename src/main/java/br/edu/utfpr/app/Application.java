@@ -8,6 +8,12 @@ import br.edu.utfpr.modelo.*;
 import br.edu.utfpr.movimentacoes.*;
 import br.edu.utfpr.payment.*;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class Application {
     public static void main(String[] args) {
         int formaPagamento = 0;
@@ -16,6 +22,16 @@ public class Application {
         Estoque estoque = new Estoque();
         Usuario usuarioAtual = null;
         Carrinho carrinhoAtual = new Carrinho();
+        
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con=DriverManager.getConnection("jdbc:mysql://localhost:3306/db_lanchonete","root","root");
+            System.out.println("Conexão estabelecida com sucesso: " + con);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
         while (true) {
             if (usuarioAtual == null) {
