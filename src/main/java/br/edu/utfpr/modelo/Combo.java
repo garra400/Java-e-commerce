@@ -1,34 +1,38 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package br.edu.utfpr.modelo;
 
-/**
- *
- * @author Garra pc
- */
-public class Combo extends Produto {
-    private Produto[] itens;
+import java.util.ArrayList;
+import java.util.List;
 
-    public Combo(String nome, double preco, Produto[] itens) {
-        super(nome, preco);
-        this.itens = itens;
+public class Combo extends Produto {
+    private List<ItemCombo> itens;
+    private double desconto;
+
+    public Combo(String nome, double desconto) {
+        super(nome, 0.0);  // O preço será calculado com base nos itens e desconto
+        this.desconto = desconto;
+        this.itens = new ArrayList<>();
     }
 
-    public Produto[] getItens() {
-        return itens;
+    public void adicionarItem(Produto produto, int quantidade) {
+        itens.add(new ItemCombo(produto, quantidade));
+        recalcularPreco();
+    }
+
+    private void recalcularPreco() {
+        double total = 0.0;
+        for (ItemCombo item : itens) {
+            total += item.getProduto().getPreco() * item.getQuantidade();
+        }
+        setPreco(total * (1 - desconto));
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(super.toString() + " (Inclui: ");
-        for (Produto item : itens) {
-            sb.append(item.getNome()).append(", ");
-        }
-        sb.setLength(sb.length() - 2); // Remove a última vírgula
-        sb.append(")");
-        return sb.toString();
+        return "Combo{" +
+                "nome='" + getNome() + '\'' +
+                ", itens=" + itens +
+                ", desconto=" + desconto +
+                ", preço com desconto=" + getPreco() +
+                '}';
     }
 }

@@ -1,9 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Interface.java to edit this template
- */
 package br.edu.utfpr.payment;
-
 
 public class Pagamento {
     private double valor;
@@ -25,5 +20,11 @@ public class Pagamento {
     @Override
     public String toString() {
         return "Pagamento de R$ " + valor + " via " + metodo;
+    }
+
+    // Método para realizar o pagamento
+    public void realizarPagamento() {
+        // Lógica para realizar o pagamento aqui
+        System.out.println("Pagamento de R$ " + valor + " realizado via " + metodo);
     }
 }

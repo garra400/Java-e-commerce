@@ -3,19 +3,22 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package br.edu.utfpr.modelo;
+package br.edu.utfpr.factory;
+import br.edu.utfpr.modelo.*;
+import br.edu.utfpr.movimentacoes.*;
+import br.edu.utfpr.payment.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
+
 /**
  *
- * @author Garra pc
+ * @author Garra pcs
  */
-public class Estoque {
+public class GerenciadorDeEstoque {
     private static Estoque instancia;
     private Map<Produto, Integer> produtos;
 
-    public Estoque() {
+    private GerenciadorDeEstoque() {
         produtos = new HashMap<>();
     }
 
@@ -25,6 +28,7 @@ public class Estoque {
         }
         return instancia;
     }
+    
 
     public void adicionarProduto(Produto produto, int quantidade) {
         produtos.put(produto, produtos.getOrDefault(produto, 0) + quantidade);

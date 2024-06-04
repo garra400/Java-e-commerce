@@ -32,6 +32,10 @@ public abstract class Produto {
     public double getPreco() {
         return preco;
     }
+    
+    public void setPreco(double preco) {
+        this.preco = preco;
+    }
 
     @Override
     public String toString() {
