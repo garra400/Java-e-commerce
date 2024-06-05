@@ -1,22 +1,21 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package br.edu.utfpr.menu;
-import br.edu.utfpr.modelo.*;
-import br.edu.utfpr.factory.*;
-import br.edu.utfpr.menu.*;
-/**
- *
- * @author Garra pc
- */
+
+import br.edu.utfpr.factory.GerenciadorDeUsuarios;
+import br.edu.utfpr.factory.GerenciadorDeProdutos;
+import br.edu.utfpr.modelo.Usuario;
+import java.sql.Connection;
+import java.util.Scanner;
+
 public class MenuPrincipal extends Menu {
     private GerenciadorDeUsuarios gerenciadorDeUsuarios;
+    private GerenciadorDeProdutos gerenciadorDeProdutos;
     private Usuario usuarioAtual;
+    private Connection conexao;
 
-    public MenuPrincipal(GerenciadorDeUsuarios gerenciadorDeUsuarios) {
-        this.gerenciadorDeUsuarios = gerenciadorDeUsuarios;
+    public MenuPrincipal(Connection conexao) {
+        this.conexao = conexao;
+        this.gerenciadorDeUsuarios = GerenciadorDeUsuarios.getInstancia(conexao);
+        this.gerenciadorDeProdutos = GerenciadorDeProdutos.getInstancia(conexao);
     }
 
     @Override
@@ -53,9 +52,9 @@ public class MenuPrincipal extends Menu {
                         System.out.println("Login bem-sucedido!");
                         usuarioAtual = new Usuario(nomeDeUsuario, senha, gerenciadorDeUsuarios.isAdmin(nomeDeUsuario));
                         if (usuarioAtual.isAdmin()) {
-                            new MenuAdmin(gerenciadorDeUsuarios, usuarioAtual).mostrarMenu();
+                            new MenuAdmin(gerenciadorDeUsuarios, gerenciadorDeProdutos, usuarioAtual).mostrarMenu();
                         } else {
-                            new MenuUsuario(gerenciadorDeUsuarios, usuarioAtual).mostrarMenu();
+                            new MenuUsuario(gerenciadorDeUsuarios, gerenciadorDeProdutos, usuarioAtual).mostrarMenu();
                         }
                     } else {
                         System.out.println("Nome de usuário ou senha inválidos.");

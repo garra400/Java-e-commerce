@@ -1,28 +1,40 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package br.edu.utfpr.factory;
 
-/**
- *
- * @author Garra pc
- */
-import br.edu.utfpr.modelo.*;
+import br.edu.utfpr.modelo.Combo;
+import br.edu.utfpr.modelo.ItemCombo;
+import br.edu.utfpr.modelo.Produto;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 public class GerenciadorDeCombos {
+    private static GerenciadorDeCombos instancia;
+    private Connection conexao;
     private String nome;
     private double desconto;
     private List<ItemCombo> itens;
 
-    public GerenciadorDeCombos(String nome, double desconto) {
+    private GerenciadorDeCombos(Connection conexao) {
+        this.conexao = conexao;
+        this.itens = new ArrayList<>();
+    }
+
+    public static synchronized GerenciadorDeCombos getInstancia(Connection conexao) {
+        if (instancia == null) {
+            instancia = new GerenciadorDeCombos(conexao);
+        }
+        return instancia;
+    }
+
+    public GerenciadorDeCombos configurarCombo(String nome, double desconto) {
         this.nome = nome;
         this.desconto = desconto;
-        this.itens = new ArrayList<>();
+        return this;
     }
 
     public GerenciadorDeCombos adicionarItem(Produto produto, int quantidade) {
@@ -30,11 +42,41 @@ public class GerenciadorDeCombos {
         return this;
     }
 
-    public Combo build() {
-        Combo combo = new Combo(nome, desconto);
-        for (ItemCombo item : itens) {
-            combo.adicionarItem(item.getProduto(), item.getQuantidade());
+    public Combo criarCombo() {
+        try {
+            String query = "INSERT INTO combos (nome, desconto) VALUES (?, ?)";
+            PreparedStatement stmt = conexao.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+            stmt.setString(1, nome);
+            stmt.setDouble(2, desconto);
+            stmt.executeUpdate();
+            ResultSet rs = stmt.getGeneratedKeys();
+            if (rs.next()) {
+                int id = rs.getInt(1);
+                Combo combo = new Combo(id, nome, desconto);
+
+                for (ItemCombo item : itens) {
+                    adicionarItemAoCombo(combo, item.getProduto(), item.getQuantidade());
+                }
+
+                return combo;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return combo;
+        return null;
+    }
+
+    public void adicionarItemAoCombo(Combo combo, Produto produto, int quantidade) {
+        try {
+            String query = "INSERT INTO itens_combo (combo_id, produto_id, quantidade) VALUES (?, ?, ?)";
+            PreparedStatement stmt = conexao.prepareStatement(query);
+            stmt.setInt(1, combo.getId());
+            stmt.setInt(2, produto.getId());
+            stmt.setInt(3, quantidade);
+            stmt.executeUpdate();
+            combo.adicionarItem(produto, quantidade);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

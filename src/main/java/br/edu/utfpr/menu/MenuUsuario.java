@@ -1,17 +1,21 @@
 package br.edu.utfpr.menu;
+
 import br.edu.utfpr.modelo.*;
 import br.edu.utfpr.factory.*;
 import br.edu.utfpr.movimentacoes.*;
 import br.edu.utfpr.payment.*;
+import java.util.Scanner;
+import java.util.Map;
 
 public class MenuUsuario extends Menu {
     private GerenciadorDeUsuarios gerenciadorDeUsuarios;
-    private Estoque estoque = Estoque.getInstancia();
+    private GerenciadorDeProdutos gerenciadorDeProdutos;
     private Usuario usuarioAtual;
     private Carrinho carrinhoAtual = new Carrinho();
 
-    public MenuUsuario(GerenciadorDeUsuarios gerenciadorDeUsuarios, Usuario usuarioAtual) {
+    public MenuUsuario(GerenciadorDeUsuarios gerenciadorDeUsuarios, GerenciadorDeProdutos gerenciadorDeProdutos, Usuario usuarioAtual) {
         this.gerenciadorDeUsuarios = gerenciadorDeUsuarios;
+        this.gerenciadorDeProdutos = gerenciadorDeProdutos;
         this.usuarioAtual = usuarioAtual;
     }
 
@@ -29,12 +33,21 @@ public class MenuUsuario extends Menu {
 
             switch (escolha) {
                 case 1:
+                    System.out.println("Produtos diponíveis:");
+                    Map<Produto, Integer> produtos = gerenciadorDeProdutos.getProdutos();
+                    for (Map.Entry<Produto, Integer> entry : produtos.entrySet()) {
+                        Produto p = entry.getKey();
+                        int quantidade = entry.getValue();
+                        System.out.println(p + " - Quantidade: " + quantidade);
+                    }
+                    
                     System.out.println("Digite o ID do produto: ");
                     int idProduto = scanner.nextInt();
                     scanner.nextLine();  // Consumir a nova linha
                     Produto produto = null;
 
-                    for (Produto p : estoque.getProdutos().keySet()) {
+                    for (Map.Entry<Produto, Integer> entry : gerenciadorDeProdutos.getProdutos().entrySet()) {
+                        Produto p = entry.getKey();
                         if (p.getId() == idProduto) {
                             produto = p;
                             break;
@@ -50,6 +63,7 @@ public class MenuUsuario extends Menu {
                     break;
 
                 case 2:
+                    
                     System.out.println("Digite o ID do produto: ");
                     idProduto = scanner.nextInt();
                     scanner.nextLine();  // Consumir a nova linha
@@ -110,7 +124,7 @@ public class MenuUsuario extends Menu {
                             System.out.println("Forma de pagamento inválida");
                             continue;
                     }
-                    pagamento.realizarPagamento(); // Chama o método realizarPagamento sem passar argumentos
+                    pagamento.realizarPagamento();
                     System.out.println("Pedido realizado com sucesso!");
                     carrinhoAtual = new Carrinho();
                     break;

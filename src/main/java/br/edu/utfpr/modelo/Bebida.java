@@ -10,7 +10,7 @@ package br.edu.utfpr.modelo;
  * @author Garra pc
  */
 public class Bebida extends Produto {
-    public Bebida(String nome, double preco) {
-        super(nome, preco);
+    public Bebida(int id, String nome, double preco) {
+        super(id, nome, preco);
     }
 }

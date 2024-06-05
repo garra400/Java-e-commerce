@@ -1,24 +1,20 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package br.edu.utfpr.menu;
+
+import br.edu.utfpr.factory.*;
 import br.edu.utfpr.modelo.*;
 import java.util.Map;
-import br.edu.utfpr.factory.*;
-import br.edu.utfpr.menu.*;
-/**
- *
- * @author Garra pc
- */
+import java.sql.Connection;
+import java.util.Scanner;
+
 public class MenuAdmin extends Menu {
     private GerenciadorDeUsuarios gerenciadorDeUsuarios;
-    private Estoque estoque = Estoque.getInstancia();
+    private GerenciadorDeProdutos gerenciadorDeProdutos;
     private Usuario usuarioAtual;
+    private Connection conexao;
 
-    public MenuAdmin(GerenciadorDeUsuarios gerenciadorDeUsuarios, Usuario usuarioAtual) {
+    public MenuAdmin(GerenciadorDeUsuarios gerenciadorDeUsuarios, GerenciadorDeProdutos gerenciadorDeProdutos, Usuario usuarioAtual) {
         this.gerenciadorDeUsuarios = gerenciadorDeUsuarios;
+        this.gerenciadorDeProdutos = gerenciadorDeProdutos;
         this.usuarioAtual = usuarioAtual;
     }
 
@@ -59,62 +55,55 @@ public class MenuAdmin extends Menu {
                     int tipoProduto = scanner.nextInt();
                     scanner.nextLine();  // Consumir a nova linha
 
-                    Produto produto = GerenciadorDeProdutos.criarProduto(tipoProduto, nomeProduto, precoProduto);
-                    estoque.adicionarProduto(produto, quantidadeProduto);
+                    Produto produto = gerenciadorDeProdutos.criarProduto(tipoProduto, nomeProduto, precoProduto);
+                    gerenciadorDeProdutos.adicionarProduto(produto, quantidadeProduto);
                     System.out.println("Produto adicionado ao estoque com sucesso!");
                     break;
-
+                    
                 case 3:
                     System.out.println("Digite o nome do combo: ");
-                    String nomeCombo = scanner.nextLine();
-                    System.out.println("Digite a porcentagem de desconto do combo: ");
+                     String nomeCombo = scanner.nextLine();
+                    System.out.println("Digite o desconto do combo (em %): ");
                     double descontoCombo = scanner.nextDouble();
                     scanner.nextLine();  // Consumir a nova linha
 
-                    GerenciadorDeCombos comboBuilder = new GerenciadorDeCombos(nomeCombo, descontoCombo);
+                    GerenciadorDeCombos gerenciadorDeCombos = GerenciadorDeCombos.getInstancia(conexao);
+                    gerenciadorDeCombos.configurarCombo(nomeCombo, descontoCombo);
 
-                    while (true) {
-                        System.out.println("Produtos disponíveis:");
-                        for (Map.Entry<Produto, Integer> entry : estoque.getProdutos().entrySet()) {
-                            Produto p = entry.getKey();
-                            int quantidade = entry.getValue();
-                            System.out.println(p + " - Quantidade em estoque: " + quantidade);
-                        }
-                        System.out.println("Digite o ID do produto para adicionar ao combo (ou 'sair' para finalizar): ");
-                        int idProdutoCombo = scanner.nextInt();
-                        if (idProdutoCombo == 0) {
-                            break;
-                        }
-
-                        Produto produtoCombo = null;
-                        for (Produto p : estoque.getProdutos().keySet()) {
-                            if (p.getId() == idProdutoCombo) {
-                                produtoCombo = p;
-                                break;
-                            }
-                        }
-
-                        if (produtoCombo == null) {
-                            System.out.println("Produto não encontrado.");
-                            continue;
-                        }
-
-                        System.out.println("Digite a quantidade do produto para o combo: ");
-                        int quantidadeProdutoCombo = scanner.nextInt();
-                        scanner.nextLine();  // Consumir a nova linha
-
-                        comboBuilder.adicionarItem(produtoCombo, quantidadeProdutoCombo);
-                        System.out.println("Produto adicionado ao combo.");
+                    boolean adicionandoItens = true;
+                    while (adicionandoItens) {
+                        System.out.println("Digite o nome do produto do combo (ou 'fim' para parar): ");
+                        String nomeProdutoCombo = scanner.nextLine();
+                        if (nomeProdutoCombo.equalsIgnoreCase("fim")) {
+                            adicionandoItens = false;
+                        break;
+                    }
+                    Produto produtoCombo = null;
+                    if (produtoCombo == null) {
+                        System.out.println("Produto não encontrado. Por favor, adicione o produto ao estoque primeiro.");
+                    continue;
                     }
 
-                    Combo combo = comboBuilder.build();
-                    estoque.adicionarProduto(combo, 1);
-                    System.out.println("Combo criado com sucesso!");
+                    System.out.println("Digite a quantidade do produto no combo: ");
+                    int quantidadeProdutoCombo = scanner.nextInt();
+                    scanner.nextLine();  // Consumir a nova linha
+
+                    gerenciadorDeCombos.adicionarItem(produtoCombo, quantidadeProdutoCombo);
+                    }
+
+                    Combo comboCriado = gerenciadorDeCombos.criarCombo();
+                    if (comboCriado != null) {
+                        System.out.println("Combo criado com sucesso!");
+                    } else {
+                    System.out.println("Erro ao criar combo. Verifique os dados e tente novamente.");
+                    }
                     break;
+             
 
                 case 4:
                     System.out.println("Estoque atual:");
-                    for (Map.Entry<Produto, Integer> entry : estoque.getProdutos().entrySet()) {
+                    Map<Produto, Integer> produtos = gerenciadorDeProdutos.getProdutos();
+                    for (Map.Entry<Produto, Integer> entry : produtos.entrySet()) {
                         Produto p = entry.getKey();
                         int quantidade = entry.getValue();
                         System.out.println(p + " - Quantidade: " + quantidade);

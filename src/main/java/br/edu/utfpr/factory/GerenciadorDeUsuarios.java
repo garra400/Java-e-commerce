@@ -1,80 +1,81 @@
 package br.edu.utfpr.factory;
 
 import br.edu.utfpr.modelo.Usuario;
-import java.io.*;
+import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
 
 public class GerenciadorDeUsuarios {
-    private static final String NOME_ARQUIVO = "usuarios.txt";
-    private Map<String, Usuario> usuarios;
     private static GerenciadorDeUsuarios instancia;
+    private Connection conexao;
 
-    private GerenciadorDeUsuarios() {
-        usuarios = new HashMap<>();
-        carregarUsuarios();
+    private GerenciadorDeUsuarios(Connection conexao) {
+        this.conexao = conexao;
     }
 
-    public static synchronized GerenciadorDeUsuarios getInstancia() {
+    public static synchronized GerenciadorDeUsuarios getInstancia(Connection conexao) {
         if (instancia == null) {
-            instancia = new GerenciadorDeUsuarios();
+            instancia = new GerenciadorDeUsuarios(conexao);
         }
         return instancia;
     }
 
-    private void carregarUsuarios() {
-        try (BufferedReader reader = new BufferedReader(new FileReader(NOME_ARQUIVO))) {
-            String linha;
-            while ((linha = reader.readLine()) != null) {
-                Usuario usuario = Usuario.fromString(linha);
-                if (usuario != null) {
-                    usuarios.put(usuario.getNomeDeUsuario(), usuario);
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("Não foi possível carregar os usuários: " + e.getMessage());
-        }
-    }
-
-    private void salvarUsuarios() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(NOME_ARQUIVO))) {
-            for (Usuario usuario : usuarios.values()) {
-                writer.write(usuario.toString());
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            System.out.println("Não foi possível salvar os usuários: " + e.getMessage());
-        }
-    }
-
     public boolean registrar(String nomeDeUsuario, String senha) {
-        if (usuarios.containsKey(nomeDeUsuario)) {
-            return false; // Usuário já existe
+        try {
+            String query = "INSERT INTO usuarios (nomeDeUsuario, senha, isAdmin) VALUES (?, ?, ?)";
+            PreparedStatement stmt = conexao.prepareStatement(query);
+            stmt.setString(1, nomeDeUsuario);
+            stmt.setString(2, senha);
+            stmt.setBoolean(3, false);
+            stmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
-        Usuario novoUsuario = new Usuario(nomeDeUsuario, senha, false);
-        usuarios.put(nomeDeUsuario, novoUsuario);
-        salvarUsuarios();
-        return true;
     }
 
     public boolean login(String nomeDeUsuario, String senha) {
-        Usuario usuario = usuarios.get(nomeDeUsuario);
-        return usuario != null && usuario.getSenha().equals(senha);
+        try {
+            String query = "SELECT * FROM usuarios WHERE nomeDeUsuario = ? AND senha = ?";
+            PreparedStatement stmt = conexao.prepareStatement(query);
+            stmt.setString(1, nomeDeUsuario);
+            stmt.setString(2, senha);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public boolean isAdmin(String nomeDeUsuario) {
-        Usuario usuario = usuarios.get(nomeDeUsuario);
-        return usuario != null && usuario.isAdmin();
+        try {
+            String query = "SELECT isAdmin FROM usuarios WHERE nomeDeUsuario = ?";
+            PreparedStatement stmt = conexao.prepareStatement(query);
+            stmt.setString(1, nomeDeUsuario);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getBoolean("isAdmin");
+            }
+            return false;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public boolean modificarUsuarioParaAdmin(String nomeDeUsuario) {
-        Usuario usuario = usuarios.get(nomeDeUsuario);
-        if (usuario != null) {
-            usuario = new Usuario(usuario.getNomeDeUsuario(), usuario.getSenha(), true);
-            usuarios.put(nomeDeUsuario, usuario);
-            salvarUsuarios();
-            return true;
+        try {
+            String query = "UPDATE usuarios SET isAdmin = ? WHERE nomeDeUsuario = ?";
+            PreparedStatement stmt = conexao.prepareStatement(query);
+            stmt.setBoolean(1, true);
+            stmt.setString(2, nomeDeUsuario);
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
-        return false;
     }
 }
